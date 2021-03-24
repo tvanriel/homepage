@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="keywords" content="Personal homepage">
+        <link rel="stylesheet" href="./css/app.scss">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+        <title>My Homepage</title>
+    </head>
+    <body>
+        <main id="main" role="main">
+        </main>
+
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-auto">
+                    <a class="btn btn-primary" href="/editor.html">Edit</a>
+                </div>
+                <div class="col">
+                    <p>Share key:</p>
+                    <div class="input-group">
+                        <input class="form-control" id="config-key" />
+                        <button class="btn btn-primary" id="set-key">Set key</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal hidden" id="search-modal">
+                <div class="container" id="search-container">
+                        <div class="body">
+                                <div class="card">
+                                        <h4 class="card-header">Search</h4>
+                                        <div class="card-body">
+                                                <div class="form-group">
+                                                        <input id="search-input" class="form-control" placeholder="Search on DuckDuckGo"/>
+                                                </div>
+                                        </div>
+                                </div>
+                        </div>
+                </div>
+        </div>
+
+
+        <script src="./js/index.ts"></script>
+        <style id="custom-style"></style>
+    </body>
+</html>

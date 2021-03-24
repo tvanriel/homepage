@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="keywords" content="Personal homepage">
+        <link rel="stylesheet" href="./css/app.scss">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta charset="utf-8">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+        <title>My Homepage</title>
+    </head>
+    <body>
+        <p class="text-center text-red">- Editor mode -</p>
+        <main id="main" role="main">
+        </main>
+        <script src="./js/editor.ts"></script>
+        <style id="custom-style"></style>
+
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col">
+                    <label for="content-editor">Content Editor</label>
+                    <textarea id="content-editor" class="bg-dark text-white text-monospace form-control" rows="10"></textarea>
+                </div>
+                <div class="col">
+                    <label for="config-editor">Config Editor</label>
+                    <textarea id="config-editor" class="bg-dark text-white text-monospace form-control" rows="10"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+
+            <div class="row">
+                <div class="col">
+                    <button class="btn btn-primary" id="save-config"><span class="material-icons">save</span> Save</button>
+                    <a class="btn btn-secondary" href="/">Return</a>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <h2>Docs on the JSON values</h2>
+                    <p>
+                    The top-level object is the root of the JSON structure.  It's between the first pair of curly braces (<code>{}</code>).
+                    This is where you define global settings for the page.  Such as Style, wallpaper and title.
+                    </p>
+                    <p>
+                    The following settings are supported in the top-level object.
+                    </p>
+                    <ul>
+                        <li><code>title</code> - The page title (which is the big header at the top of the page and on the tab)</li>
+                        <li><code>style</code> - CSS to inject into the page.  This is useful for theming your homepage to your liking.</li>
+                        <li><code>searchKey</code> - The keystroke that triggers the search popup to appear. (default: \)</li>
+                        <li><code>wallpaper</code> - the URL to the background image to use.</li>
+                        <li><code>links</code> - The list of widgets that are rendered on the page.</li>
+                    </ul>
+                    <h3>The links list</h3>
+                    <p>
+                    This list defined as <code>.links</code> is the list of widgets that are rendered on the page.  The following widgets are supported and allowed:
+                    </p>
+                    <ul>
+                        <li>list - A list of links to show.  Takes as arguments: a list of Link objects, an icon name (as per material design icons), a title, and a color.</li>
+                        NL
+                        <li>clock - A digital clock that shows the current time and date of your system. Takes no arguments.</li>
+                        <li>buienradar - A weathermap of The Netherlands. Takes no arguments.</li>
+                        <li>knmi - A weathermap of The Netherlands. Takes no arguments.</li>
+                        <li>rss - A simple RSS feed reader.  Takes as arguments: resource: the url to the feed to read.</li>
+                    </ul>
+                    <h4>The link object</h4>
+                    <p>
+                    The link object takes as arguments:
+                    <ul>
+                        <li><code>title</code> - the name of the link</li>
+                        <li><code>href</code> - the URL to point to</li>
+                        <li><code>color</code> - the color of the element</li>
+                        <li><code>icon</code> - a material design icon to show</li>
+                        <li><code>shortcutKey</code> - a sequence of keys to press to navigate to this url (mousetrap syntax).</li>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal hidden" id="search-modal">
+                <div class="container" id="search-container">
+                        <div class="body">
+                                <div class="card">
+                                        <h4 class="card-header">Search</h4>
+                                        <div class="card-body">
+                                                <div class="form-group">
+                                                        <input id="search-input" class="form-control" placeholder="Search on DuckDuckGo"/>
+                                                </div>
+                                        </div>
+                                </div>
+                        </div>
+                </div>
+        </div>
+        
+    </body>
+</html>
