@@ -7,8 +7,10 @@ import KNMIWidget from './widgets/knmi';
 import RSSWidget from './widgets/rss';
 import SpaceWidget from './widgets/space';
 import WebcamWidget from './widgets/webcam';
+import OpenWeatherMapWidget from './widgets/openweathermap'
 
 import Widget from './widgets/widget';
+import Mousetrap from 'mousetrap';
 
 export class Config {
     public title: string;
@@ -61,7 +63,7 @@ export function renderWindow(root: HTMLElement, c: Config, columns: Widget[][]):
 
     if (c.searchKey) {
         let searchModal = $e('#search-modal');
-        let searchInput = document.getElementById('search-input');
+        let searchInput = (<HTMLInputElement>document.getElementById('search-input'));
         Mousetrap(searchInput).bind('enter', () => {
                 open('https://duckduckgo.com/?q=' + searchInput.value.replace(/\s/g, '+'), '', 'noopener');
                 searchInput.value = "";
@@ -112,6 +114,8 @@ export function makeWidgets(config: object[][]): Widget[][] {
                 return new SpaceWidget()
             case 'webcam':
                 return new WebcamWidget(wid)
+            case 'weather':
+                return new OpenWeatherMapWidget(wid)
             default:
                 return new ErrWidget(wid)
         }
