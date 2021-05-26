@@ -1,7 +1,4 @@
-import {renderNode} from 'skruv/vDOM';
-import {createState} from 'skruv/state';
-import {title, h1, div, css,main} from 'skruv/html';
-import {$e} from './util';
+import {$h, $e} from './util'
 
 import ClockWidget from './widgets/clock';
 import ListWidget from './widgets/list';
@@ -20,11 +17,13 @@ export class Config {
     public style: string;
     public wallpaper: string;
     public searchKey: string;
-    public version: number = 1;
 }
 
+
+
+
 // Fetch a new config from the server using key k
-export function loadConfig(k: string): Promise<Config> {
+export function loadConfig(k: string): Promise<Config|null> {
     return new Promise((resolve) => {
         fetch("/api/v1/page/" + k + ".json").then(r=>r.json()).then(r => {
             const c = new Config();
@@ -33,25 +32,36 @@ export function loadConfig(k: string): Promise<Config> {
             c.title = r.title;
             c.wallpaper = r.wallpaper;
             c.style = r.style;
-            if (c.version === undefined) c.version = 1;
 
             resolve(c);
         }).catch(e => {
             console.error(e);
-            resolve(new Config());
+            resolve(null);
         })
     });
 }
 
 
 // Render the contents of config c into root.
-export async function renderWindow(root: () => HTMLElement, state: object, renderer: (w:Widget) => HTMLElement): void {
-    document.body.style.backgroundImage = state.config.wallpaper
+export function renderWindow(root: HTMLElement, c: Config, columns: Widget[][]): void {
+        let titleElem = $e("title");
+
+        // Remove all the child nodes from the title.
+        while(titleElem.firstChild) titleElem.removeChild(titleElem.firstChild);
+        titleElem.appendChild(document.createTextNode(c.title))
+        root.appendChild($h('h1', {id: 'title'}, [c.title]))
+
+        let container: HTMLElement;
+        root.appendChild($h('div', {'class': 'container-fluid'}, [container = $h('div', {'class': 'form-row', 'id': 'columns'})]))
+        columns.forEach((col, nth) => {
+            container.appendChild($h('div', {'class': 'col columns-' + (nth+1)}, col.map(wid=>wid.render())));
+        });
+    document.body.style.backgroundImage = c.wallpaper
     document.body.style.backgroundSize = 'cover'
     document.body.style.backgroundAttachment = 'fixed'
     document.body.style.backgroundPosition = 'center'
 
-    if (state.config.searchKey) {
+    if (c.searchKey) {
         let searchModal = $e('#search-modal');
         let searchInput = (<HTMLInputElement>document.getElementById('search-input'));
         Mousetrap(searchInput).bind('enter', () => {
@@ -65,31 +75,14 @@ export async function renderWindow(root: () => HTMLElement, state: object, rende
                 Mousetrap.unbind('escape');
         });
 
-        Mousetrap.bind(typeof state.config.searchKey === "string" ? state.config.searchKey : '\\', () => {
+        Mousetrap.bind(typeof c.searchKey === "string" ? c.searchKey : '\\', () => {
                 searchModal.classList.remove('hidden');
                 searchInput.focus();
         });
     }
-    let columns = makeWidgets(state.columns, state);
 
-    // When the config changes, reload the page.
-    for await(const s of state) {
-        const content = main({id:'main', role:'main'},
-            css`${s.config.style}`,
-            h1({id:'title'}, s.config.title),
-            div({class:'container-fluid'},
-                div({class:'form-row', id:'columns'},
-                    ...columns.map((col, nth) =>
-                        // Render the columns into the view.
-                        div({class:'col columns-'+(nth+1)},
-                            ...col.map(wid => renderer(wid.render(s))),
-                        ),
-                    ),
-                ),
-            ),
-        );
-        renderNode(content, root())
-    }
+    const styleElem = $e('#custom-style')
+    styleElem.appendChild(document.createTextNode(c.style))
 }
 
 export function getCurrentKey(): string {
@@ -105,25 +98,26 @@ export function getCurrentKey(): string {
     return "";
 }
 
-export function makeWidgets(config: object[][], state: object): Widget[][] {
+export function makeWidgets(config: object[][]): Widget[][] {
     return config.map(col => col.map((wid: any) => {
+        console.assert(typeof wid.type === "string");
         switch(wid.type) {
             case 'clock':
-                return new ClockWidget(state)
+                return new ClockWidget()
             case 'list':
-                return new ListWidget(state,wid)
+                return new ListWidget(wid)
             case 'knmi':
-                return new KNMIWidget(state)
+                return new KNMIWidget()
             case 'rss':
-                return new RSSWidget(state,wid)
+                return new RSSWidget(wid)
             case 'space':
-                return new SpaceWidget(state)
+                return new SpaceWidget()
             case 'webcam':
-                return new WebcamWidget(state,wid)
+                return new WebcamWidget(wid)
             case 'weather':
-                return new OpenWeatherMapWidget(state,wid)
+                return new OpenWeatherMapWidget(wid)
             default:
-                return new ErrWidget(state,wid)
+                return new ErrWidget(wid)
         }
     }))
 }
@@ -150,6 +144,7 @@ export function getColumnConfig(): object[][] {
                         shortcutKey: 'e d',
                         title: 'Edit this page!',
                         href: '/editor.html',
+
                     }
                 ]
             },
@@ -165,10 +160,5 @@ export function defaultConfig(): Config {
     c.style = "";
     c.wallpaper = "";
     c.searchKey = "\\";
-    c.version = 1;
-    return createState(c);
-}
-
-export function makeState(config: Config, columns: object[][]) {
-    return createState({config, columns, widget: {}})
+    return c;
 }

@@ -1,6 +1,5 @@
-import {
-    span, div, a, ul, li,
-} from 'skruv/html';
+import { $h } from '../util';
+
 import Widget from './widget';
 
 type Launch = {
@@ -22,36 +21,34 @@ function getLaunches(): Promise<Response|null> {
 }
 
 export default class SpaceWidget implements Widget {
-    constructor(state: object) {
-        if (state.widget.space === undefined) { state.widget.space = { error: '', launches: [] }; } else return; // Already fetching from one location, to avoid over-using the API stop reloading and rely on the state changes of the other widget instance.
+    // eslint-disable-next-line class-methods-use-this
+    public render():HTMLElement {
+        const list = $h('ul', { class: 'list-group list-group-flush' }, []);
 
-        const reload = () => getLaunches().then((launches) => {
-            state.widget.space = {
-                error: '',
-                launches: launches.results.splice(0, 15),
-            };
-        }).catch((e) => {
-            state.widget.space = {
-                error: e.toString(),
-                launches: [],
-            };
+        const reload = () => getLaunches().then((launches) => launches.results.forEach((l) => {
+            list.appendChild(
+                $h('li', { class: 'list-group-item', title: l.mission?.description }, [
+                    $h('span', {}, [l.window_start]),
+                    ' ',
+                    $h('span', { class: 'text-white' }, [l.name]),
+                ]),
+            );
+        })).catch((e) => {
+            list.appendChild($h('li', { class: 'list-group-item text-white bg-danger' }, [`Cannot get space launches: ${e.toString()}`]));
         });
 
         reload();
-        setInterval(() => reload(), 60 * 60 * 1000);
-    }
-
-    // eslint-disable-next-line class-methods-use-this
-    public render(state: object):HTMLElement {
-        return div({ class: 'card widget-space mb-1' },
-            div({ class: 'card-header' },
-                a({ href: 'https://thespacedevs.com', target: '_blank', rel: 'nofollow noreferrer noopener' },
-                    'Space Launches by TheSpaceDevs.com')),
-            ul({ class: 'list-group list-group-flush' },
-                ...state.widget.space.launches.map((l) => li({ class: 'list-group-item', title: l.mission?.description },
-                    span({}, l.window_start),
-                    ' ',
-                    span({ class: 'text-white' }, l.name)))),
-            state.widget.space.error.length > 0 ? div({ class: 'bg-red text-white p-3 rounded' }, state.widget.space.error) : '');
+        setInterval(() => {
+            while (list.firstChild) list.removeChild(list.firstChild);
+            reload();
+        }, 60 * 60 * 1000);
+        return $h('div', { class: 'card widget-space mb-1' }, [
+            $h('div', { class: 'card-header' }, [
+                $h('a', { href: 'https://thespacedevs.com', target: '_blank' }, [
+                    'Space Launches by TheSpaceDevs.com',
+                ]),
+            ]),
+            list,
+        ]);
     }
 }

@@ -6,17 +6,36 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta charset="utf-8">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
-        <script src="./js/editor.ts"></script>
         <title>My Homepage</title>
     </head>
     <body>
         <p class="text-center text-red">- Editor mode -</p>
-        <main id="main" role="main"></main>
+        <main id="main" role="main">
+        </main>
+        <script src="./js/editor.ts"></script>
+        <style id="custom-style"></style>
 
         <div class="container-fluid">
-            <div id="editor"></div>
+            <div class="row">
+                <div class="col">
+                    <label for="content-editor">Content Editor</label>
+                    <textarea id="content-editor" class="bg-dark text-white text-monospace form-control" rows="10"></textarea>
+                </div>
+                <div class="col">
+                    <label for="config-editor">Config Editor</label>
+                    <textarea id="config-editor" class="bg-dark text-white text-monospace form-control" rows="10"></textarea>
+                </div>
+            </div>
         </div>
-        <hr/>
+        <div class="container-fluid">
+
+            <div class="row">
+                <div class="col">
+                    <button class="btn btn-primary" id="save-config"><span class="material-icons">save</span> Save</button>
+                    <a class="btn btn-secondary" href="/">Return</a>
+                </div>
+            </div>
+        </div>
         <div class="container">
             <div class="row">
                 <div class="col">
