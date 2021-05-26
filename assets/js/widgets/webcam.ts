@@ -1,4 +1,4 @@
-import { $h } from '../util';
+import { img, div } from 'skruv/html';
 import Widget from './widget';
 
 type Config = {
@@ -7,24 +7,25 @@ type Config = {
 }
 
 export default class WebcamWidget implements Widget {
-    private url: string;
+    private id: number;
 
-    private title: string;
-
-    constructor(w: Config) {
-        this.url = w.url ?? '';
-        this.title = w.title ?? '';
+    constructor(state: object, w: Config) {
+        if (state.widget.webcam === undefined) state.widget.webcam = [];
+        this.id = state.widget.webcam.push({
+            url: w.url ?? '',
+            title: w.title ?? '',
+        }) - 1;
+        const reload = () => {
+            state.widget.webcam[this.id].url = `${w.url}?x=${(new Date()).valueOf()}`;
+        };
+        setInterval(() => { reload(); }, 10 * 60 * 1000);
     }
 
-    public render(): HTMLElement {
-        const img: HTMLElement = $h('img', { alt: this.title }, []);
-        const reload = () => img.setAttribute('src', `${this.url}?x=${(new Date()).valueOf()}`);
-        reload();
-        setInterval(() => reload(), 10 * 60 * 1000);
-
-        return $h('div', { class: 'card widget-webcam mb-1' }, [
-            this.title.length > 0 ? $h('div', { class: 'card-header' }, [this.title]) : null,
-            img,
-        ]);
+    public render(s: object): HTMLElement {
+        return div({ class: 'card widget-webcam' },
+            (s.widget.webcam[this.id].title.length > 0
+                ? div({ class: 'card-header' }, s.widget.webcam[this.id].title)
+                : div({})),
+            img({ alt: s.widget.webcam[this.id].title, src: s.widget.webcam[this.id].url }));
     }
 }

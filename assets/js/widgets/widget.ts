@@ -1,3 +1,3 @@
 export default interface Widget {
-    render(): HTMLElement;
+    render: (s: object) => HTMLElement; // eslint-disable-line no-unused-vars
 } // eslint-disable-line semi

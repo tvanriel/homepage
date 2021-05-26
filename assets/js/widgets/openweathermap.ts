@@ -1,4 +1,6 @@
-import { $h } from '../util';
+import {
+    div, h1, h3, p,
+} from 'skruv/html';
 import Widget from './widget';
 
 type Config = {
@@ -102,56 +104,46 @@ type OWMForecastResponse = {
     message:string;
 }
 
-type Forecast = {
-    at: string;
-    weather: string;
-    temp: number;
-}
 export default class OpenWeatherMapWidget implements Widget {
-    private location: string;
+    private id: number;
 
-    private apiKey: string;
+    constructor(state: object, wid: Config) {
+        if (state.widget.openweathermap === undefined) {
+            state.widget.openweathermap = { locations: [] };
+        }
 
-    private weather: string;
-
-    private temp: string;
-
-    private unit: string;
-
-    private forecast: Forecast[] = [];
-
-    constructor(wid: Config) {
-        this.location = wid.location;
-        this.apiKey = wid.apiKey;
-        this.unit = wid.unit ?? 'metric';
-    }
-
-    public render(): HTMLElement {
-        const errorDisplay = $h('p', { class: 'bg-red text-white p-2 rounded', style: 'display: none' }, ['']);
-
-        const currentWeather = $h('h3', {}, ['']);
-        const currentTemp = $h('h1', {}, ['']);
-        const forecast = $h('div', { class: 'form-row' }, []);
+        // Get the index of our results.
+        this.id = state.widget.openweathermap.locations.push({
+            error: '',
+            location: wid.location,
+            apiKey: wid.apiKey,
+            unit: wid.unit ?? 'metric',
+            currentWeather: 'clear',
+            currentTemp: 0,
+            forecast: [],
+        }) - 1;
 
         const reload = () => {
-            fetch(`https://api.openweathermap.org/data/2.5/weather?q=${this.location}&appid=${this.apiKey}&units=${this.unit}`).then((res) => res.json()).then((res: OWMCurrentResponse) => {
-                errorDisplay.style.display = 'none';
-                errorDisplay.firstChild.nodeValue = '';
+            fetch(`https://api.openweathermap.org/data/2.5/weather?q=${state.widget.openweathermap.locations[this.id].location}&appid=${state.widget.openweathermap.locations[this.id].apiKey}&units=${state.widget.openweathermap.locations[this.id].unit}`).then((res) => res.json()).then((res: OWMCurrentResponse) => {
                 if ('message' in res) {
-                    errorDisplay.firstChild.nodeValue = res.message;
-                    errorDisplay.style.display = 'block';
+                    state.widget.openweathermap.locations[this.id].error = res.message;
                     return;
                 }
-                currentWeather.firstChild.nodeValue = res.weather[0].description;
-                currentTemp.firstChild.nodeValue = res.main.temp + { metric: ' °C', imperial: ' &deg;F' }[this.unit];
+                state.widget.openweathermap.locations[this.id].error = '';
+                state.widget.openweathermap.locations[this.id].currentWeather = (
+                    res.weather[0].description
+                );
+                state.widget.openweathermap.locations[this.id].currentTemp = (
+                    Math.round(res.main.temp).toString() + { metric: ' °C', imperial: ' °F' }[wid.unit ?? 'metric']
+                );
             });
 
-            fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${this.location}&appid=${this.apiKey}&units=${this.unit}`).then((res) => res.json()).then((res: OWMForecastResponse) => {
+            fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${state.widget.openweathermap.locations[this.id].location}&appid=${state.widget.openweathermap.locations[this.id].apiKey}&units=${state.widget.openweathermap.locations[this.id].unit}`).then((res) => res.json()).then((res: OWMForecastResponse) => {
                 if (!('list' in res)) {
-                    errorDisplay.style.display = 'block';
-                    errorDisplay.firstChild.nodeValue = res.message;
+                    state.widget.openweathermap.locations[this.id].error = res.message;
                     return;
                 }
+                state.widget.openweathermap.locations[this.id].error = '';
 
                 // Filter out duplicates per day.
                 const dates: string[] = [];
@@ -159,7 +151,7 @@ export default class OpenWeatherMapWidget implements Widget {
                 const cd = new Date();
                 dates.push(`${cd.getFullYear()}-${cd.getMonth()}-${cd.getDate()}`);
 
-                res.list.filter((w) => {
+                state.widget.openweathermap.locations[this.id].forecast = res.list.filter((w) => {
                     // Get the first value of a particular date.
                     const d = new Date(w.dt * 1000);
                     const dt = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
@@ -168,43 +160,29 @@ export default class OpenWeatherMapWidget implements Widget {
                         return true;
                     }
                     return false;
-                })
-
-                // Format the data for the widget.
-                    .map((w) => ({
-                        at: new Date(w.dt * 1000),
-                        weather: w.weather[0].description,
-                        temp: Math.round(w.main.temp_max) + { metric: ' °C', imperial: ' &deg;F' }[this.unit],
-                    }))
-                // Only take the first four.
-                    .filter((_, i) => i < 4)
-
-                // And append them to the widget.
-                    .forEach((w) => {
-                        forecast.appendChild($h('div', { class: 'col-3 rounded border-dark' }, [
-                            $h('div', { class: 'd-flex flex-column h-100 w-100 align-content-evenly' }, [
-                                $h('p', {}, [`${w.at.getMonth() + 1}-${w.at.getDate()}`]),
-                                $h('p', {}, [w.weather]),
-                                $h('p', { class: 'mt-auto' }, [w.temp]),
-                            ]),
-                        ]));
-                    });
+                }).map((w) => ({
+                    at: new Date(w.dt * 1000),
+                    weather: w.weather[0].description,
+                    temp: Math.round(w.main.temp_max).toString() + { metric: ' °C', imperial: ' °F' }[wid.unit ?? 'metric'],
+                })).filter((_, i) => i < 4);
             });
         };
         reload();
-        setTimeout(() => reload(), 10 * 60 * 1000);
+        setInterval(() => reload(), 10 * 60 * 1000);
+    }
 
-        const card = $h('div', { class: 'card bg-dark mb-1 widget-weather' }, [
-            errorDisplay,
-            $h('div', { class: 'card-body' }, [
-                $h('div', { class: 'form-row mb-3' }, [
-                    $h('div', { class: 'col text-white' }, [currentWeather]),
-                    $h('div', { class: 'col text-white' }, [currentTemp]),
-                ]),
-                forecast,
-            ]),
-        ]);
-
-        return card;
+    public render(state:object): HTMLElement {
+        return div({ class: 'card bg-dark widget-weather' },
+            state.widget.openweathermap.locations[this.id].error ? p({ class: 'bg-red text-white p-2 rounded', style: 'display: none' }, state.widget.openweathermap.locations[this.id].error) : div({}),
+            div({ class: 'card-body' },
+                div({ class: 'form-row mb-3' },
+                    h3({ class: 'col text-white' }, state.widget.openweathermap.locations[this.id].currentWeather),
+                    h1({ class: 'col text-white' }, state.widget.openweathermap.locations[this.id].currentTemp)),
+                div({ class: 'form-row' },
+                    state.widget.openweathermap.locations[this.id].forecast.map((w) => div({ class: 'col-3 rounded' },
+                        div({ class: 'd-flex flex-column h-100 w-100 align-content-vertically' },
+                            p({ class: 'mb-0' }, `${w.at.getMonth() + 1}-${w.at.getDate()}`),
+                            p({ class: 'mb-0' }, w.weather),
+                            p({ class: 'mt-auto' }, w.temp)))))));
     }
 }
