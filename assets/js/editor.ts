@@ -1,5 +1,4 @@
 import {getCurrentKey, defaultConfig, loadConfig, getColumnConfig, makeWidgets, renderWindow, Config, makeState} from './app'
-import {$e} from './util'
 import Widget from './widgets/widget'
 import {div, button, textarea, span, a} from 'skruv/html';
 import {createState} from 'skruv/state';
@@ -19,7 +18,7 @@ document.addEventListener('readystatechange', () => {
             columns: colConfig,
         })
         // Load the current config in the textareas.
-        renderWindow(() => $e("#main"), appState, (w:Widget): HTMLElement => div({"class":"mb-1"}, w));
+        renderWindow(() => document.getElementById("main"), appState, (w:Widget): HTMLElement => div({"class":"mb-1"}, w));
         (async () => {
             for await (const s of editorState) {
 
@@ -63,7 +62,7 @@ document.addEventListener('readystatechange', () => {
                         button({class:'btn btn-primary', id: 'save-config', onclick: () => save(editorState.config, editorState.columns)}, span({class: 'material-icons'}, 'save'), 'Save'),
                         a({class:'btn btn-secondary', href: '/'}, 'Return'),
                     ),
-                    $e("#editor")
+                    document.getElementById("editor")
                 )
             }
         })()

@@ -45,7 +45,7 @@ export default class ListComponent implements Widget {
             title: config.title ?? '',
             color: config.color ?? '',
             links: config.links,
-        });
+        })-1;
 
         config.links.filter((l) => l.shortcutKey !== '' && l.shortcutKey !== undefined).forEach((l) => Mousetrap.bind(l.shortcutKey, () => {
             window.open(l.href, '_blank').opener = null;

@@ -1,5 +1,4 @@
 import {getCurrentKey, defaultConfig, loadConfig, getColumnConfig, makeWidgets, renderWindow, Config, makeState} from './app'
-import {$e} from './util'
 import {div} from 'skruv/html'
 
 document.addEventListener('readystatechange', () => {
@@ -13,12 +12,12 @@ document.addEventListener('readystatechange', () => {
     let colConfig = getColumnConfig();
 
     config(configKey).then(config => {
-        renderWindow(() => $e("#main"), makeState(config,colConfig), (w) => div({class:'mb-1'}, w));
+        renderWindow(() => document.getElementById("main"), makeState(config,colConfig), (w) => div({class:'mb-1'}, w));
 
-        (<HTMLInputElement>$e("#config-key")).value = configKey;
+        (<HTMLInputElement>document.getElementById("config-key")).value = configKey;
 
-        $e('#set-key').addEventListener('click', () => {
-            configKey = (<HTMLInputElement>$e('#config-key')).value;
+        document.getElementById('#set-key').addEventListener('click', () => {
+            configKey = (<HTMLInputElement>document.getElementById('config-key')).value;
             loadConfig(configKey).then(config => {
                 localStorage.setItem('current-key', configKey);
             });

@@ -1,7 +1,6 @@
 import {renderNode} from 'skruv/vDOM';
 import {createState} from 'skruv/state';
 import {title, h1, div, css,main} from 'skruv/html';
-import {$e} from './util';
 
 import ClockWidget from './widgets/clock';
 import ListWidget from './widgets/list';
@@ -52,7 +51,7 @@ export async function renderWindow(root: () => HTMLElement, state: object, rende
     document.body.style.backgroundPosition = 'center'
 
     if (state.config.searchKey) {
-        let searchModal = $e('#search-modal');
+        let searchModal = document.getElementById('search-modal');
         let searchInput = (<HTMLInputElement>document.getElementById('search-input'));
         Mousetrap(searchInput).bind('enter', () => {
                 open('https://duckduckgo.com/?q=' + searchInput.value.replace(/\s/g, '+'), '', 'noopener');
