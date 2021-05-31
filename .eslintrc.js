@@ -21,7 +21,8 @@ module.exports = {
   plugins: [
     '@typescript-eslint',
   ],
-  rules: {
+  rules: { 
+      'no-param-reassign': ['off'], // Skruv state requires this.
       'indent': ['error', 4],
       "import/extensions": [
       "error",

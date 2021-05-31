@@ -1,54 +1,76 @@
-import {getCurrentKey, defaultConfig, loadConfig, getColumnConfig, makeWidgets, renderWindow, Config} from './app'
-import {$h, $e} from './util'
+import {getCurrentKey, defaultConfig, loadConfig, getColumnConfig, makeWidgets, renderWindow, Config, makeState} from './app'
+import {$e} from './util'
 import Widget from './widgets/widget'
-
+import {div, button, textarea, span, a} from 'skruv/html';
+import {createState} from 'skruv/state';
+import {renderNode} from 'skruv/vDOM';
 document.addEventListener('readystatechange', () => {
     // wait until we can interact with the document.
-    if (document.readyState !== "interactive") {
+    if (document.readyState !== "complete") {
         return;
     }
 
     config(getCurrentKey()).then(config => {
 
-    let colConfig = getColumnConfig();
-    let columns = makeWidgets(colConfig);
+        let colConfig = getColumnConfig();
+        const appState = makeState(config,colConfig);
+        const editorState = createState({
+            config,
+            columns: colConfig,
+        })
+        // Load the current config in the textareas.
+        renderWindow(() => $e("#main"), appState, (w:Widget): HTMLElement => div({"class":"mb-1"}, w));
+        (async () => {
+            for await (const s of editorState) {
 
-    renderWindow($e("#main"), config, columns);
+                const jsonColConfig = JSON.stringify(s.columns, null, '    ')
+                const jsonConfig = JSON.stringify(s.config, null, '    ')
+                renderNode(
+                    div({'id': 'editor'},
+                        div({class:'row mb-3'},
+                            div({class:'col'},
+                                textarea({
+                                    value: jsonColConfig,
+                                    rows: Math.max(5,jsonColConfig.split("").filter(c=>c==="\n").length+2),
+                                    class:'form-control text-white bg-dark',
+                                    onblur: e => {
+                                        try{
+                                            const colConfig = JSON.parse(e.target.value);
+                                            editorState.columns = colConfig;
+                                            appState.columns = colConfig;
+                                        } catch(_) {
+                                            console.error(_)
+                                        }
+                                    }}),
+                            ),
+                            div({class:'col'},
+                                textarea({
+                                    value: jsonConfig,
+                                    rows: Math.max(5,jsonConfig.split("").filter(c=>c==="\n").length+2),
+                                    class:'form-control text-white bg-dark',
+                                    onblur: e => {
+                                        try{
+                                            const config = JSON.parse(e.target.value);
+                                            editorState.config = config;
+                                            appState.config = config;
+                                        } catch(_) {
+                                            console.error(_)
+                                        }
+                                    }
+                                }),
+                            ),
+                        ),
+                        button({class:'btn btn-primary', id: 'save-config', onclick: () => save(editorState.config, editorState.columns)}, span({class: 'material-icons'}, 'save'), 'Save'),
+                        a({class:'btn btn-secondary', href: '/'}, 'Return'),
+                    ),
+                    $e("#editor")
+                )
+            }
+        })()
 
-    const configEditor = (<HTMLTextAreaElement>$e('#config-editor'));
-    const contentEditor = (<HTMLTextAreaElement>$e('#content-editor'));
-    const saveButton = (<HTMLButtonElement>$e('#save-config'));
-
-
-    // Load the current config in the textareas.
-    configEditor.value = JSON.stringify(config, null, '    ');
-    contentEditor.value = JSON.stringify(colConfig, null, '    ');
-
-
-    configEditor.addEventListener('blur', () => {
-        try {
-            config = (JSON.parse(configEditor.value))
-            const root = $e('#main')
-            while (root.firstChild) root.removeChild(root.firstChild)
-            renderWindow(root, config, columns)
-        } catch(e) {
-            console.error(e);
-        }
     });
-    contentEditor.addEventListener('blur', () => {
-        try {
-            colConfig = (JSON.parse(contentEditor.value))
-            columns = makeWidgets(colConfig);
-            const root = $e('#main')
-            while (root.firstChild) root.removeChild(root.firstChild)
-            renderWindow(root, config, columns)
-        } catch(e) {
-            console.error(e);
-        }
 
-    });
-    saveButton.addEventListener('click', () => save(config, colConfig))
-    });
+
     function save(config: Config, colConfig: object[][]) {
         localStorage.setItem('widgets', JSON.stringify(colConfig));
         fetch('/api/v1/page', {

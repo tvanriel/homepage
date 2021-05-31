@@ -1,4 +1,4 @@
-import { $h } from '../util';
+import { div, p } from 'skruv/html';
 import Widget from './widget';
 
 type Config = {
@@ -8,19 +8,16 @@ type Config = {
 export default class ErrWidget implements Widget {
     private type: null|string;
 
-    constructor(w: Config) {
+    constructor(state, w: Config) {
         this.type = w.type ?? null;
     }
 
     public render(): HTMLElement {
-        return $h('div', { class: 'card bg-red mb-1' }, [
-            $h('div', { class: 'card-body text-white' }, [
-                $h('p', {}, [
+        return div({ class: 'card bg-red mb-1' },
+            div({ class: 'card-body text-white' },
+                p({},
                     typeof this.type === 'string'
                         ? `Faulty widget type: "${this.type}".`
-                        : 'Unknown widget type.',
-                ]),
-            ]),
-        ]);
+                        : 'Unknown widget type.')));
     }
 }
