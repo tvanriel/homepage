@@ -32,23 +32,40 @@ type Config = {
     title?: string;
     color?: string;
     links: LinkConfig[];
-
 }
 
 export default class ListComponent implements Widget {
     private id: number;
 
+    private isPersistent = false;
+
+    private navigat(to: string): void {
+        if (this.isPersistent) {
+            window.open(to, '_blank').opener = null;
+        } else {
+            location.replace(to);
+        }
+    }
+
+    private onClick(event: MouseEvent): void {
+        event.preventDefault();
+        event.stopPropogation();
+        this.navigat(event.target.href);
+    }
+
     constructor(state:object, config: Config) {
+        this.isPersistent = new URLSearchParams(location.hash.substr(1)).get('persistent') !== null;
+
         if (state.widget.links === undefined) state.widget.links = [];
         this.id = state.widget.links.push({
             icon: config.icon ?? '',
             title: config.title ?? '',
             color: config.color ?? '',
             links: config.links,
-        })-1;
+        }) - 1;
 
         config.links.filter((l) => l.shortcutKey !== '' && l.shortcutKey !== undefined).forEach((l) => Mousetrap.bind(l.shortcutKey, () => {
-            window.open(l.href, '_blank').opener = null;
+            this.navigat(l.href);
         }));
     }
 
@@ -66,7 +83,7 @@ export default class ListComponent implements Widget {
             ul({ class: 'list-group list-group-flush' },
                 ...state.widget.links[this.id].links.map((l) => a({
                     class: 'list-group-item d-flex justify-content-between align-items-center bg-dark',
-                    target: '_blank',
+                    target: this.isPersistent ? '_blank' : '',
                     href: l.href,
                     rel: 'noopener noreferrer noopener',
                 },

@@ -2,28 +2,18 @@
   "name": "homepage-2",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "dependencies": {
     "@types/mousetrap": "^1.6.5",
-    "core-js": "^3.13.1",
     "mousetrap": "^1.6.5",
-    "parcel-bundler": "^1.10.3",
     "skruv": "^0.2.6"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.19.0",
-    "@typescript-eslint/parser": "^4.19.0",
-    "bootstrap": "^4.6.0",
-    "bootswatch": "^4.6.0",
-    "eslint": "^7.22.0",
-    "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-plugin-import": "^2.22.1",
-    "sass": "^1.32.8",
-    "typescript": "^4.2.3"
+    "@parcel/transformer-sass": "^2.0.0-beta.3.1",
+    "parcel": "next"
   },
   "scripts": {
-    "watch": "parcel watch -d build assets/index.html assets/editor.html --no-cache",
-    "build": "parcel build -d build assets/index.html assets/editor.html",
+    "watch": "parcel watch --dist-dir build assets/index.html assets/editor.html --no-cache",
+    "build": "parcel build --dist-dir build assets/index.html assets/editor.html",
     "lint": "eslint assets/js/**/*.ts",
     "lint-fix": "eslint assets/js/**/*.ts --fix",
     "typecheck": "tsc --noEmit assets/js/index.ts assets/js/editor.ts --lib es2020,dom --target es2015 --allowSyntheticDefaultImports"

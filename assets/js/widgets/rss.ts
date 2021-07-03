@@ -10,7 +10,9 @@ export default class RSSWidget implements Widget {
 
     private length: number;
 
-    constructor(state, w) {
+    private id: number;
+
+    constructor(state: object, w) {
         if (state.widget.rss === undefined) state.widget.rss = [];
         this.id = state.widget.rss.push({
             url: w.resource,
@@ -58,7 +60,7 @@ export default class RSSWidget implements Widget {
                 ...s.widget.rss[this.id].articles.map((article) => li({ class: 'list-group-item' },
                     a({
                         href: article.href,
-                        target: '_blank',
+                        target: new URLSearchParams(location.hash.substr(1)).get('persistent') !== null ? '_blank' : '',
                         rel: 'noopener noreferrer nofollow',
                     }, article.title)))));
     }

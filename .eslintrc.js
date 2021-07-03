@@ -24,6 +24,7 @@ module.exports = {
   rules: { 
       'no-param-reassign': ['off'], // Skruv state requires this.
       'indent': ['error', 4],
+      'no-restricted-globals': ['off'],
       "import/extensions": [
       "error",
       "ignorePackages",
